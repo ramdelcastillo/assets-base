@@ -1,0 +1,232 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package assetmanagement;
+import java.sql.*;
+/**
+ *
+ * @author ccslearner
+ */
+public class assets {
+    public int      asset_id;
+    public String   asset_name;
+    public String   asset_description;
+    public String   acquisition_date;
+    public boolean  forrent;
+    public double    asset_value;
+    public String   type_asset;
+    public String   status;
+    public double    loc_lattitude;
+    public double    loc_longiture;
+    public String   hoa_name;
+    public int      enclosing_asset;
+    
+    public assets() {
+        asset_id = 0;
+        asset_name = "";
+        asset_description = "";
+        acquisition_date = "";
+        forrent = false;
+        asset_value = 0;
+        type_asset = "";
+        status = "";
+        loc_lattitude = 0;
+        loc_longiture = 0;
+        hoa_name = "";
+        enclosing_asset = 0;
+    }
+    
+    public int add_record() {
+        try {
+            Connection conn;
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/HOADB?useTimezone=true&serverTimezone=UTC&user=root&password=12345678&useSSL=false");
+            //PreparedStatement pstmt = conn.prepareStatement("INSERT INTO assets (asset_id, asset_name, asset_description, acquisition_date, forrent, asset_value, type_asset, status, loc_lattitude, loc_longiture, hoa_name, enclosing_asset) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            System.out.println("Connection Succesful");
+            
+            PreparedStatement pstmt = conn.prepareStatement("SELECT MAX(asset_id) + 1 AS newID FROM assets");
+            ResultSet rst = pstmt.executeQuery();
+            while (rst.next()) {
+                asset_id = rst.getInt("newID");
+            }
+            
+            pstmt = conn.prepareStatement("INSERT INTO assets (asset_id, asset_name, asset_description, acquisition_date, forrent, asset_value, type_asset, status, loc_lattitude, loc_longiture, hoa_name, enclosing_asset) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            pstmt.setInt        (1, asset_id);
+            pstmt.setString     (2, asset_name);
+            pstmt.setString     (3, asset_description);
+            pstmt.setString     (4, acquisition_date);
+            pstmt.setBoolean    (5, forrent);
+            pstmt.setDouble     (6, asset_value);
+            pstmt.setString     (7, type_asset);
+            pstmt.setString     (8, status);
+            pstmt.setDouble     (9, loc_lattitude);
+            pstmt.setDouble     (10, loc_longiture);
+            pstmt.setString     (11, hoa_name);
+            pstmt.setInt        (12, enclosing_asset);   
+            
+            // i think this is a db app design desision, well at least it doesn't affect the database
+            // there can be another method for this but the INSERT statement would not include enclosing_asset anymore
+            // which would probably require more lines, why not just 0 since in modifying records, there would be cases
+            // that you need to input something for enclosing_asset
+            if (enclosing_asset == 0) { //5006
+               pstmt.setNull(12, Types.INTEGER);
+            }
+            else  pstmt.setInt (12, enclosing_asset);   
+           
+            
+            pstmt.executeUpdate();
+            pstmt.close();
+            conn.close();
+            return 1;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return 0;
+        }
+    }
+    
+    public int mod_record() {
+        try {
+            Connection conn;
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/HOADB?useTimezone=true&serverTimezone=UTC&user=root&password=12345678&useSSL=false");
+            PreparedStatement pstmt = conn.prepareStatement("UPDATE assets SET asset_name=?, asset_description=?, acquisition_date=?, forrent=?, asset_value=?, type_asset=?, status=?, loc_lattitude=?, loc_longiture=?, hoa_name=?, enclosing_asset=? WHERE asset_id=?");
+            
+            // "UPDATE products SET pname=?, qty=? WHERE pcode=?"
+            pstmt.setInt        (12, asset_id);
+            pstmt.setString     (1, asset_name);
+            pstmt.setString     (2, asset_description);
+            pstmt.setString     (3, acquisition_date);
+            pstmt.setBoolean    (4, forrent);
+            pstmt.setDouble     (5, asset_value);
+            pstmt.setString     (6, type_asset);
+            pstmt.setString     (7, status);
+            pstmt.setDouble     (8, loc_lattitude);
+            pstmt.setDouble     (9, loc_longiture);
+            pstmt.setString     (10, hoa_name);
+          //pstmt.setInt        (12, enclosing_asset);   
+            
+            // i think this is a db app design desision, well at least it doesn't affect the database
+            // there can be another method for this but the INSERT statement would not include enclosing_asset anymore
+            // which would probably require more lines, why not just 0 since in modifying records, there would be cases
+            // that you need to input something for enclosing_asset
+            if (enclosing_asset == 0) { 
+               pstmt.setNull(11, Types.INTEGER);
+            }
+            else  pstmt.setInt (11, enclosing_asset);   
+           
+            pstmt.executeUpdate();
+            pstmt.close();
+            conn.close();
+            return 1;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return 0;
+        }
+    
+    }
+    
+    public int del_record() {
+        try {
+            Connection conn;
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/HOADB?useTimezone=true&serverTimezone=UTC&user=root&password=12345678&useSSL=false");
+            PreparedStatement pstmt = conn.prepareStatement("DELETE FROM assets WHERE asset_id=?");
+            pstmt.setInt        (1, asset_id);
+            pstmt.executeUpdate();
+            pstmt.close();
+            conn.close();
+            return 1;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return 0;
+        }
+    }
+    
+    
+    public int view_record() {
+         try {
+            Connection conn;
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/HOADB?useTimezone=true&serverTimezone=UTC&user=root&password=12345678&useSSL=false");
+            PreparedStatement pstmt = conn.prepareStatement("SELECT asset_name, asset_description, acquisition_date, forrent, asset_value, type_asset, status, loc_lattitude, loc_longiture, hoa_name, enclosing_asset FROM assets WHERE asset_id=?");
+            pstmt.setInt(1, asset_id);
+            
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()) {
+                asset_name = rs.getString("asset_name");
+                asset_description = rs.getString("asset_description");
+                acquisition_date = rs.getString("acquisition_date");
+                forrent = rs.getBoolean("forrent");
+                asset_value = rs.getDouble("asset_value");
+                type_asset = rs.getString("type_asset");
+                status = rs.getString("status");
+                loc_lattitude = rs.getDouble("loc_lattitude");
+                loc_longiture = rs.getDouble("loc_longiture");
+                hoa_name = rs.getString("hoa_name");
+                enclosing_asset = rs.getInt("enclosing_asset");
+            }
+            
+            pstmt.close();
+            conn.close();
+            return 1;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return 0;
+        }
+    }
+    
+    public static void main(String[] args) { //WILL NOT BE USED IN THE APP, BUT ONLY FOR TESTING
+        assets ASSETS = new assets();
+        
+        //Integer m = null;
+        
+        //ASSETS.asset_id = 5013;
+        //ASSETS.asset_name = "Vase";
+        //ASSETS.asset_description = "Vase";
+        //ASSETS.acquisition_date = "2022-03-02";
+        //ASSETS.forrent = false;
+        //ASSETS.asset_value = 350;
+        //ASSETS.type_asset = "F";
+        //ASSETS.status = "W";
+        //ASSETS.loc_lattitude = 101.1231; 
+        //ASSETS.loc_longitude = 101.3330;
+        //ASSETS.hoa_name = "SJH";
+        //ASSETS.add_record();
+       
+        //ASSETS.asset_id = 5014;
+        //ASSETS.asset_name = "Chair";
+        //ASSETS.asset_description = "Chair";
+        //ASSETS.acquisition_date = "2022-03-03";
+        //ASSETS.forrent = false;
+        //ASSETS.asset_value = 400;
+        //ASSETS.type_asset = "O";
+        //ASSETS.status = "X";
+        //ASSETS.loc_lattitude = 101.1232; 
+        //ASSETS.loc_longitude = 101.3333;
+        //ASSETS.hoa_name = "SMH";
+        //ASSETS.enclosing_asset = 5006;
+        //ASSETS.mod_record();
+        
+        
+        ASSETS.asset_id = 5014;
+        ASSETS.del_record();
+        
+        
+        //ASSETS.asset_id = 5011;
+        //ASSETS.view_record();
+        //System.out.println(ASSETS.asset_id);
+        //System.out.println(ASSETS.asset_name);
+        //System.out.println(ASSETS.asset_description);
+        //System.out.println(ASSETS.acquisition_date);
+        //System.out.println(ASSETS.forrent);
+        //System.out.println(ASSETS.asset_value);
+        //System.out.println(ASSETS.type_asset);
+        //System.out.println(ASSETS.status);
+        //System.out.println(ASSETS.loc_lattitude);
+        //System.out.println(ASSETS.loc_longiture);
+        //System.out.println(ASSETS.hoa_name);
+        //System.out.println(ASSETS.enclosing_asset);
+        
+    }
+}
+
+
+
